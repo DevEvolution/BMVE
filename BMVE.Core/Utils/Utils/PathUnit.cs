@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BMVE.Core.Utils.Adjustment
+namespace BMVE.Core.Utils.Utils
 {
-    class RawInputAdjustment
+    internal struct PathUnit
     {
+        internal string Path;
+        internal string Filename;
     }
 }

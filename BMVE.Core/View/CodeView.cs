@@ -1,5 +1,6 @@
 ﻿using BMVE.Core.Commands;
 using BMVE.Core.Utils.Drawing;
+using BMVE.Core.Utils.State;
 using SkiaSharp.Views.WPF;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace BMVE.Core.View
@@ -56,6 +58,30 @@ namespace BMVE.Core.View
             this.Content = renderView;
             this.renderView.PaintSurface += RenderView_PaintSurface;
             this.Loaded += CodeView_Loaded;
+            this.PreviewKeyDown += CodeView_PreviewKeyDown;
+            this.PreviewKeyUp += CodeView_PreviewKeyUp;
+            this.PreviewMouseDown += CodeView_PreviewMouseDown;
+            this.PreviewMouseUp += CodeView_PreviewMouseUp;
+        }
+
+        private void CodeView_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            InputState.RegisterPressedMouseButton(e.ChangedButton);
+        }
+
+        private void CodeView_PreviewMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            InputState.UnregisterPressedMouseButton(e.ChangedButton);
+        }
+
+        private void CodeView_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            InputState.RegisterPressedKey(e.Key);
+        }
+
+        private void CodeView_PreviewKeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            InputState.UnregisterPressedKey(e.Key);
         }
 
         private void CodeView_Loaded(object sender, RoutedEventArgs e)
@@ -65,7 +91,13 @@ namespace BMVE.Core.View
             RenderCallTimer.Tick += DispatcherTimer_Tick;
             RenderCallTimer.Start();
 
+            InputLanguageManager.Current.InputLanguageChanged += Current_InputLanguageChanged;
             RunAsync();
+        }
+
+        private void Current_InputLanguageChanged(object sender, InputLanguageEventArgs e)
+        {
+            InputState.SetInputLanguage(e.NewLanguage.Name);
         }
 
         private void RenderView_PaintSurface(object sender, SkiaSharp.Views.Desktop.SKPaintSurfaceEventArgs e)
@@ -76,7 +108,8 @@ namespace BMVE.Core.View
         private void DispatcherTimer_Tick(object sender, object e)
         {
             renderView.InvalidateVisual();
-            //InputState.MousePosition = new Tuple<int, int>((int)(Window.Current.CoreWindow.PointerPosition.X - Window.Current.CoreWindow.Bounds.Left), (int)(Window.Current.CoreWindow.PointerPosition.Y - Window.Current.CoreWindow.Bounds.Top));
+            Point mousePosition = Mouse.GetPosition(this);
+            InputState.MousePosition = new Tuple<int, int>((int)(mousePosition.X), (int)(mousePosition.Y));
         }
 
         private async void RunAsync()

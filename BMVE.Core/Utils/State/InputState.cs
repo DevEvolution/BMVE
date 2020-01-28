@@ -6,12 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace BMVE.Core.Utils.State
 {
     internal static class InputState
     {
-        //private static volatile ConcurrentDictionary<VirtualKey, bool> _pressedKeys = new ConcurrentDictionary<VirtualKey, bool>();
+        private static volatile ConcurrentDictionary<Key, bool> _pressedKeys = new ConcurrentDictionary<Key, bool>();
+        private static volatile ConcurrentDictionary<MouseButton, bool> _pressedMouseButtons = new ConcurrentDictionary<MouseButton, bool>();
 
         private static volatile InputLanguage _inputLanguage = InputLanguage.English;
 
@@ -23,31 +25,41 @@ namespace BMVE.Core.Utils.State
             [InputLanguage.Russian] = new RussianLayout()
         };
 
-        //internal static bool HasPressed { get => _pressedKeys.Values.Contains(true); }
+        internal static bool HasPressed { get => _pressedKeys.Values.Contains(true); }
 
-        //internal static void RegisterPressedKey(VirtualKey vk)
-        //{
-        //    _pressedKeys[vk] = true;
-        //}
+        internal static void RegisterPressedKey(Key vk)
+        {
+            _pressedKeys[vk] = true;
+        }
 
-        //internal static void UnregisterPressedKey(VirtualKey vk)
-        //{
-        //    _pressedKeys[vk] = false;
-        //}
+        internal static void RegisterPressedMouseButton(MouseButton btn)
+        {
+            _pressedMouseButtons[btn] = true;
+        }
 
-        //internal static List<VirtualKey> GetPressedKeys()
-        //{
-        //    return _pressedKeys.Where(x => x.Value == true).Select(x => x.Key).ToList();
-        //}
+        internal static void UnregisterPressedKey(Key vk)
+        {
+            _pressedKeys[vk] = false;
+        }
+
+        internal static void UnregisterPressedMouseButton(MouseButton btn)
+        {
+            _pressedMouseButtons[btn] = false;
+        }
+
+        internal static List<Key> GetPressedKeys()
+        {
+            return _pressedKeys.Where(x => x.Value == true).Select(x => x.Key).ToList();
+        }
 
         internal static void SetInputLanguage(string lang)
         {
             switch (lang)
             {
-                case "ru":
+                case "ru-RU":
                     _inputLanguage = InputLanguage.Russian;
                     break;
-                case "en-Us":
+                case "en-US":
                 default:
                     _inputLanguage = InputLanguage.English;
                     break;
@@ -60,38 +72,36 @@ namespace BMVE.Core.Utils.State
         internal static List<int> GetMouseButtons()
         {
             List<int> buttons = new List<int>();
-            //if (_pressedKeys.TryGetValue(VirtualKey.LeftButton, out bool left) && left) buttons.Add(0);
-            //if (_pressedKeys.TryGetValue(VirtualKey.RightButton, out bool right) && right) buttons.Add(1);
-            //if (_pressedKeys.TryGetValue(VirtualKey.MiddleButton, out bool middle) && middle) buttons.Add(2);
-            //if (_pressedKeys.TryGetValue(VirtualKey.XButton1, out bool xbtn1) && xbtn1) buttons.Add(3);
-            //if (_pressedKeys.TryGetValue(VirtualKey.XButton2, out bool xbtn2) && xbtn2) buttons.Add(4);
-            //_pressedKeys.TryGetValue(VirtualKey.XButton1, out bool xbutton1);
+            if (_pressedMouseButtons.TryGetValue(MouseButton.Left, out bool left) && left) buttons.Add(0);
+            if (_pressedMouseButtons.TryGetValue(MouseButton.Right, out bool right) && right) buttons.Add(1);
+            if (_pressedMouseButtons.TryGetValue(MouseButton.Middle, out bool middle) && middle) buttons.Add(2);
+            if (_pressedMouseButtons.TryGetValue(MouseButton.XButton1, out bool xbtn1) && xbtn1) buttons.Add(3);
+            if (_pressedMouseButtons.TryGetValue(MouseButton.XButton2, out bool xbtn2) && xbtn2) buttons.Add(4);
 
             return buttons;
         }
 
         internal static List<char> GetInputChars()
         {
-            //if (!_pressedKeys.Any(x => x.Value == true)) return new List<char>();
+            if (!_pressedKeys.Any(x => x.Value == true)) return new List<char>();
 
-            //bool isShiftPressed = _pressedKeys.Where(x => x.Value == true).Any(x => x.Key == VirtualKey.Shift);
+            bool isShiftPressed = _pressedKeys.Where(x => x.Value == true).Any(x => x.Key == Key.LeftShift || x.Key == Key.RightShift);
 
-            //List<char> input = new List<char>();
-            //VKLayout currentLayout = KeyboardLayouts[_inputLanguage];
-            //foreach (var key in _pressedKeys.Where(x => x.Value == true &&
-            //     x.Key != VirtualKey.Shift &&
-            //     x.Key != VirtualKey.Control).Select(x => x.Key))
-            //{
-            //    if (currentLayout.KeyMap.TryGetValue(key, out CharShiftPair charmap))
-            //    {
-            //        input.Add(isShiftPressed ?
-            //            charmap.ShiftChar :
-            //            charmap.Char);
-            //    }
-            //}
+            List<char> input = new List<char>();
+            VKLayout currentLayout = KeyboardLayouts[_inputLanguage];
+            foreach (var key in _pressedKeys.Where(x => x.Value == true &&
+                 x.Key != Key.LeftShift && x.Key != Key.RightShift &&
+                 x.Key != Key.LeftCtrl && x.Key != Key.RightCtrl).Select(x => x.Key))
+            {
+                if (currentLayout.KeyMap.TryGetValue(key, out CharShiftPair charmap))
+                {
+                    input.Add(isShiftPressed ?
+                        charmap.ShiftChar :
+                        charmap.Char);
+                }
+            }
 
-            //return input;
-            return new List<char>();
+            return input;
         }
     }
 }

@@ -69,11 +69,8 @@ namespace BMVE.Core.Utils.Drawing
         {
             if (!TryGetSnapshot(out DrawingSnapshot currentSnapshot))
             {
-                currentSnapshot = CurrentSnapshot;
-            };// return;
-
-            //if (currentSnapshot.DrawingPipe.Count == 0)
-            //    return;
+                currentSnapshot = CurrentSnapshot.Clone();
+            }
 
             SKSurface surface = args.Surface;
             SKCanvas session = surface.Canvas;
@@ -82,159 +79,127 @@ namespace BMVE.Core.Utils.Drawing
             //session.Antialiasing = CanvasAntialiasing.Antialiased;
             //session.TextAntialiasing = Microsoft.Graphics.Canvas.Text.CanvasTextAntialiasing.ClearType;
 
-            //CanvasDevice device = CanvasDevice.GetSharedDevice();
             double screenWidth = sender.ActualWidth,
                 screenHeight = sender.ActualHeight;
-            //CanvasRenderTarget offscreen = new CanvasRenderTarget(device, (float)screenWidth, (float)screenHeight, 96);
+
+            SKBitmap bufferBitmap = new SKBitmap((int)screenWidth, (int)screenHeight);
 
             // Draw
-            //using (CanvasDrawingSession ds = offscreen.CreateDrawingSession())
-            //{
-            // Console preparations
-            int console_maxRowCount = (int)Math.Floor(screenHeight / MeasureStringHeight());
-            LimitedQueue<string> console_outputQueue = new LimitedQueue<string>(console_maxRowCount);
-
-            // Clear
-            session.Clear(ScreenState.BackgroundColor);
-            foreach (IDrawable drawable in currentSnapshot.DrawingPipe)
+            using (SKCanvas offscreen = new SKCanvas(bufferBitmap))
             {
-                switch (drawable)
+                // Console preparations
+                int console_maxRowCount = (int)Math.Floor(screenHeight / MeasureStringHeight());
+                LimitedQueue<string> console_outputQueue = new LimitedQueue<string>(console_maxRowCount);
+
+                // Clear
+                offscreen.Clear(ScreenState.BackgroundColor);
+                foreach (IDrawable drawable in currentSnapshot.DrawingPipe)
                 {
-                    case UIText text:
-                        {
-                            session.DrawText(text.Text, text.X, text.Y, new SKPaint()
+                    switch (drawable)
+                    {
+                        case UIText text:
                             {
-                                Color = text.ForegroundColor,
-                                Typeface = SKTypeface.FromFamilyName(text.FontInfo.Family),
-                                TextSize = (float)text.FontInfo.Size
-                            });
-
-                            break;
-                        }
-                    case UIEllipse ellipse:
-                        {
-                            if (ellipse.BackgroundColor.HasValue)
-                            {
-                                session.DrawOval(ellipse.X, ellipse.Y, ellipse.Width, ellipse.Height, new SKPaint()
+                                offscreen.DrawText(text.Text, text.X, text.Y, new SKPaint()
                                 {
-                                    Color = ellipse.BackgroundColor.Value,
+                                    Color = text.ForegroundColor,
+                                    Typeface = SKTypeface.FromFamilyName(text.FontInfo.Family),
+                                    TextSize = (float)text.FontInfo.Size
+                                });
+
+                                break;
+                            }
+                        case UIEllipse ellipse:
+                            {
+                                if (ellipse.BackgroundColor.HasValue)
+                                {
+                                    offscreen.DrawOval(ellipse.X, ellipse.Y, ellipse.Width, ellipse.Height, new SKPaint()
+                                    {
+                                        Color = ellipse.BackgroundColor.Value,
+                                        Style = SKPaintStyle.Fill
+                                    });
+                                }
+
+                                offscreen.DrawOval(ellipse.X, ellipse.Y, ellipse.Width, ellipse.Height, new SKPaint()
+                                {
+                                    Color = ellipse.ForegroundColor,
+                                    Style = SKPaintStyle.Stroke
+                                });
+                                break;
+                            }
+                        case UIRectangle rectangle:
+                            {
+                                if (rectangle.BackgroundColor.HasValue)
+                                {
+                                    offscreen.DrawRect(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, new SKPaint()
+                                    {
+                                        Color = rectangle.BackgroundColor.Value,
+                                        Style = SKPaintStyle.Fill
+                                    });
+                                }
+
+                                offscreen.DrawRect(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, new SKPaint()
+                                {
+                                    Color = rectangle.ForegroundColor,
                                     Style = SKPaintStyle.Fill
                                 });
+                                break;
                             }
-
-                            session.DrawOval(ellipse.X, ellipse.Y, ellipse.Width, ellipse.Height, new SKPaint()
+                        case UILine line:
                             {
-                                Color = ellipse.ForegroundColor,
-                                Style = SKPaintStyle.Stroke
-                            });
-
-
-                            //if (ellipse.BackgroundColor.HasValue)
-                            //    ds.FillEllipse(ellipse.X, ellipse.Y, ellipse.Width, ellipse.Height, ellipse.BackgroundColor.Value);
-
-                            //ds.DrawEllipse(ellipse.X, ellipse.Y, ellipse.Width, ellipse.Height, ellipse.ForegroundColor);
-                            break;
-                        }
-                    case UIRectangle rectangle:
-                        {
-                            if (rectangle.BackgroundColor.HasValue)
-                            { 
-                                session.DrawRect(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, new SKPaint()
+                                offscreen.DrawLine(line.X, line.Y, line.X1, line.Y1, new SKPaint()
                                 {
-                                    Color = rectangle.BackgroundColor.Value,
-                                    Style = SKPaintStyle.Fill
+                                    Color = line.ForegroundColor
                                 });
+
+                                break;
                             }
-
-                            session.DrawRect(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, new SKPaint()
+                        case UIConsoleText consoleText:
                             {
-                                Color = rectangle.ForegroundColor,
-                                Style = SKPaintStyle.Fill
-                            });
-
-                            //if (rectangle.BackgroundColor.HasValue)
-                            //    ds.FillRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, rectangle.BackgroundColor.Value);
-
-                            //ds.DrawRectangle(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, rectangle.ForegroundColor);
-                            break;
-                        }
-                    case UILine line:
-                        {
-                            session.DrawLine(line.X, line.Y, line.X1, line.Y1, new SKPaint()
+                                console_outputQueue.Enqueue(consoleText.Text);
+                                break;
+                            }
+                        case UIImage image:
                             {
-                                Color = line.ForegroundColor
-                            });
+                                var bounds = image.Image.TransformedImage.Info.Rect;
+                                var width = image.Image.TransformedImage.Width;
+                                var height = image.Image.TransformedImage.Height;
+                                offscreen.DrawBitmap(image.Image.TransformedImage, new SKRect(image.X, image.Y, image.X + image.Width, image.Y + image.Height));
 
-                            //ds.DrawLine(line.X, line.Y, line.X1, line.Y1, line.ForegroundColor);
-                            break;
-                        }
-                    case UIConsoleText consoleText:
-                        {
-                            console_outputQueue.Enqueue(consoleText.Text);
-                            break;
-                        }
-                    case UIImage image:
-                        {
-                            var bounds = image.Image.TransformedImage.Info.Rect;
-                            var width = image.Image.TransformedImage.Width;
-                            var height = image.Image.TransformedImage.Height;
-                            session.DrawBitmap(image.Image.TransformedImage, new SKRect(image.X, image.Y, image.X + image.Width, image.Y + image.Height));
-
-                            //var bounds = image.Image.TransformedImage.GetBounds(ds);
-                            //ds.DrawImage(image.Image.TransformedImage, new Rect(image.X + (image.Width - bounds.Width) / 2, image.Y + (image.Height - bounds.Height) / 2, bounds.Width, bounds.Height), bounds, 1, CanvasImageInterpolation.HighQualityCubic);
-                            break;
-                        }
-                    default:
-                        {
-                            session.DrawText("Drawing error", 0, 0, new SKPaint()
+                                //var bounds = image.Image.TransformedImage.GetBounds(ds);
+                                //ds.DrawImage(image.Image.TransformedImage, new Rect(image.X + (image.Width - bounds.Width) / 2, image.Y + (image.Height - bounds.Height) / 2, bounds.Width, bounds.Height), bounds, 1, CanvasImageInterpolation.HighQualityCubic);
+                                break;
+                            }
+                        default:
                             {
-                                Color = SKColors.Red
-                            });
-                            //ds.DrawText("Drawing error", 0, 0, Colors.Red);
-                            break;
-                        }
+                                offscreen.DrawText("Drawing error", 0, 0, new SKPaint()
+                                {
+                                    Color = SKColors.Red
+                                });
+                                //ds.DrawText("Drawing error", 0, 0, Colors.Red);
+                                break;
+                            }
+                    }
                 }
+
+                textBlock.Clear();
+                textBlock.MaxWidth = args.Info.Width;
+                // Draw console
+                StringBuilder console_textToDraw = new StringBuilder();
+                while (console_outputQueue.Count > 0)
+                {
+                    console_textToDraw.AppendLine(console_outputQueue.Dequeue());
+                }
+
+                textBlock.AddText(console_textToDraw.ToString(), new Topten.RichTextKit.Style()
+                {
+                    TextColor = ScreenState.ForegroundColor,
+                    FontFamily = ScreenState.CurrentFont.Family,
+                    FontSize = (float)ScreenState.CurrentFont.Size
+                });
+                textBlock.Paint(offscreen);
+
             }
-
-            textBlock.Clear();
-            textBlock.MaxWidth = args.Info.Width;
-            // Draw console
-            StringBuilder console_textToDraw = new StringBuilder();
-            while (console_outputQueue.Count > 0)
-            {
-                console_textToDraw.AppendLine(console_outputQueue.Dequeue());
-
-            }
-            
-            textBlock.AddText(console_textToDraw.ToString(), new Topten.RichTextKit.Style() 
-            {
-                TextColor = ScreenState.ForegroundColor,
-                FontFamily = ScreenState.CurrentFont.Family,
-                FontSize = (float)ScreenState.CurrentFont.Size
-            });
-            textBlock.Paint(session);
-
-            // SKIA FUCKED UP
-            //session.DrawText(console_textToDraw.ToString(), 0, 10, new SKPaint()
-            //{
-            //    Color = ScreenState.ForegroundColor,
-            //    Typeface = SKTypeface.FromFamilyName(ScreenState.CurrentFont.Family),
-            //    TextSize = (float)ScreenState.CurrentFont.Size
-            //});
-
-            // WIN 2D
-            //ds.DrawText(console_textToDraw.ToString(), 0, 0, ScreenState.ForegroundColor,
-            //    new Microsoft.Graphics.Canvas.Text.CanvasTextFormat()
-            //    {
-            //        FontFamily = ScreenState.CurrentFont.Family,
-            //        FontSize = (float)ScreenState.CurrentFont.Size,
-            //        FontStretch = ScreenState.CurrentFont.Stretch,
-            //        FontWeight = ScreenState.CurrentFont.Weight,
-            //        FontStyle = ScreenState.CurrentFont.Style
-            //    });
-            //}
-            //session.DrawImage(offscreen, 0, 0);
-            //GC.Collect();
+            session.DrawBitmap(bufferBitmap, new SKPoint(0, 0));
         }
 
         private static double MeasureStringHeight()

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace BMVE.Core.Utils.Utils
 {
@@ -12,87 +13,87 @@ namespace BMVE.Core.Utils.Utils
         internal EnglishLayout()
         {
             Language = InputLanguage.English;
-            //KeyMap = new Dictionary<VirtualKey, CharShiftPair>
-            //{
-            //    // numbers
-            //    [VirtualKey.Number0] = "0)",
-            //    [VirtualKey.Number1] = "1!",
-            //    [VirtualKey.Number2] = "2@",
-            //    [VirtualKey.Number3] = "3#",
-            //    [VirtualKey.Number4] = "4$",
-            //    [VirtualKey.Number5] = "5%",
-            //    [VirtualKey.Number6] = "6^",
-            //    [VirtualKey.Number7] = "7&",
-            //    [VirtualKey.Number8] = "8*",
-            //    [VirtualKey.Number9] = "9(",
+            KeyMap = new Dictionary<Key, CharShiftPair>
+            {
+                // numbers
+                [Key.D0] = "0)",
+                [Key.D1] = "1!",
+                [Key.D2] = "2@",
+                [Key.D3] = "3#",
+                [Key.D4] = "4$",
+                [Key.D5] = "5%",
+                [Key.D6] = "6^",
+                [Key.D7] = "7&",
+                [Key.D8] = "8*",
+                [Key.D9] = "9(",
 
-            //    //numpad
-            //    [VirtualKey.NumberPad0] = "00",
-            //    [VirtualKey.NumberPad1] = "11",
-            //    [VirtualKey.NumberPad2] = "22",
-            //    [VirtualKey.NumberPad3] = "33",
-            //    [VirtualKey.NumberPad4] = "44",
-            //    [VirtualKey.NumberPad5] = "55",
-            //    [VirtualKey.NumberPad6] = "66",
-            //    [VirtualKey.NumberPad7] = "77",
-            //    [VirtualKey.NumberPad8] = "88",
-            //    [VirtualKey.NumberPad9] = "99",
+                //numpad
+                [Key.NumPad0] = "00",
+                [Key.NumPad1] = "11",
+                [Key.NumPad2] = "22",
+                [Key.NumPad3] = "33",
+                [Key.NumPad4] = "44",
+                [Key.NumPad5] = "55",
+                [Key.NumPad6] = "66",
+                [Key.NumPad7] = "77",
+                [Key.NumPad8] = "88",
+                [Key.NumPad9] = "99",
 
-            //    // letters
-            //    [VirtualKey.A] = "aA",
-            //    [VirtualKey.B] = "bB",
-            //    [VirtualKey.C] = "cC",
-            //    [VirtualKey.D] = "dD",
-            //    [VirtualKey.E] = "eE",
-            //    [VirtualKey.F] = "fF",
-            //    [VirtualKey.G] = "gG",
-            //    [VirtualKey.H] = "hH",
-            //    [VirtualKey.I] = "iI",
-            //    [VirtualKey.J] = "jJ",
-            //    [VirtualKey.K] = "kK",
-            //    [VirtualKey.L] = "lL",
-            //    [VirtualKey.M] = "mM",
-            //    [VirtualKey.N] = "nN",
-            //    [VirtualKey.O] = "oO",
-            //    [VirtualKey.P] = "pP",
-            //    [VirtualKey.Q] = "qQ",
-            //    [VirtualKey.R] = "rR",
-            //    [VirtualKey.S] = "sS",
-            //    [VirtualKey.T] = "tT",
-            //    [VirtualKey.U] = "uU",
-            //    [VirtualKey.V] = "vV",
-            //    [VirtualKey.W] = "wW",
-            //    [VirtualKey.X] = "xX",
-            //    [VirtualKey.Y] = "yY",
-            //    [VirtualKey.Z] = "zZ",
+                // letters
+                [Key.A] = "aA",
+                [Key.B] = "bB",
+                [Key.C] = "cC",
+                [Key.D] = "dD",
+                [Key.E] = "eE",
+                [Key.F] = "fF",
+                [Key.G] = "gG",
+                [Key.H] = "hH",
+                [Key.I] = "iI",
+                [Key.J] = "jJ",
+                [Key.K] = "kK",
+                [Key.L] = "lL",
+                [Key.M] = "mM",
+                [Key.N] = "nN",
+                [Key.O] = "oO",
+                [Key.P] = "pP",
+                [Key.Q] = "qQ",
+                [Key.R] = "rR",
+                [Key.S] = "sS",
+                [Key.T] = "tT",
+                [Key.U] = "uU",
+                [Key.V] = "vV",
+                [Key.W] = "wW",
+                [Key.X] = "xX",
+                [Key.Y] = "yY",
+                [Key.Z] = "zZ",
 
-            //    // additional symbols
-            //    [(VirtualKey)189] = "-_",
-            //    [(VirtualKey)187] = "=+",
-            //    [(VirtualKey)188] = ",<",
-            //    [(VirtualKey)190] = ".>",
-            //    [(VirtualKey)191] = "/?",
-            //    [(VirtualKey)192] = "`~",
-            //    [(VirtualKey)220] = "\\|",
-            //    [(VirtualKey)219] = "[{",
-            //    [(VirtualKey)221] = "]}",
-            //    [(VirtualKey)186] = ";:",
-            //    [(VirtualKey)222] = "'\"",
+                // additional symbols
+                [Key.OemMinus] = "-_",
+                [Key.OemPlus] = "=+",
+                [Key.OemComma] = ",<",
+                [Key.OemPeriod] = ".>",
+                [Key.OemQuestion] = "/?",
+                [Key.OemTilde] = "`~",
+                [Key.OemBackslash] = "\\|",
+                [Key.OemOpenBrackets] = "[{",
+                [Key.OemCloseBrackets] = "]}",
+                [Key.OemSemicolon] = ";:",
+                [Key.OemQuotes] = "'\"",
 
-            //    // space
-            //    [VirtualKey.Space] = "  ",
+                // space
+                [Key.Space] = "  ",
 
-            //    // additional num keys
-            //    [VirtualKey.Add] = "++",
-            //    [VirtualKey.Subtract] = "--",
-            //    [VirtualKey.Multiply] = "**",
-            //    [VirtualKey.Divide] = "//",
+                // additional num keys
+                [Key.Add] = "++",
+                [Key.Subtract] = "--",
+                [Key.Multiply] = "**",
+                [Key.Divide] = "//",
 
-            //    // spec
-            //    [VirtualKey.Back] = $"\b\b",
-            //    [VirtualKey.Tab] = "\t\t",
-            //    [VirtualKey.Enter] = "\n\n",
-            //};
+                // spec
+                [Key.Back] = $"\b\b",
+                [Key.Tab] = "\t\t",
+                [Key.Enter] = "\n\n",
+            };
         }
     }
 }
