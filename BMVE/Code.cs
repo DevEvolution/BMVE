@@ -11,29 +11,58 @@ namespace BMVE
     {
         public override void Main()
         {
-            int previous = 0;
-            System_SetBufferedDrawingMode();
-            Stopwatch_Start(1);
-            while (!Input_UpArrowKeyPressed())
+            WebServer_Start("localhost", 10098);
+
+            while (true)
             {
+                WebServer_NextRequest();
 
-                if (Stopwatch_GetMillisecondsElapsed(1) - previous > 40)
+                string url = WebServer_GetRequestUrl();
+                string fullUrl = WebServer_GetRequestFullUrl();
+                string requestBody = WebServer_ReadRequestBody();
+                string method = WebServer_GetRequestMethod();
+                string userAgent = WebServer_GetRequestUserAgent();
+                string[] keys = WebServer_GetRequestQueryStringKeys();
+                string[] formDataKeys = WebServer_GetRequestFormDataKeys();
+
+                if (url == "/cc")
                 {
-                    Screen_Clear();
+                    WebServer_SetResponseContentType("image/png");
+                    File_OpenToRead(1, "F:\\IOBM-short.png");
+                    byte[] bytes = File_ReadBytes(1, (int)File_GetSize("f:\\IOBM-short.png"));
+                    File_Close(1);
 
-                    Console_WriteLine("Hello, Guys");
-                    Console_WriteLine("Hello, Guys");
-                    Console_WriteLine("Hello, Guys");
-                    Console_WriteLine("Hello, Guys");
-                    Console_WriteLine("Hello, Guys");
-                    Text_Write(String_Format("X={0} Y={1}", Input_GetMousePositionX(), Input_GetMousePositionY()), 100, 20, RGB(255,0,0));
+                    WebServer_SendResponse(bytes);
+                }
+                else if (url == "/fd")
+                {
+                    WebServer_WriteLine(@"<html><body></body><form action=""mimimi"" method=""POST""><input type=""text"" name=""wat"" /><input type=""text"" name=""wuf"" /><input type=""submit"" /></form></html>");
+                    WebServer_SendResponse();
 
-                    Draw_Line(0, 0, Input_GetMousePositionX(), Input_GetMousePositionY(), RGB(0, 255, 0));
-                    Screen_Render();
-                    previous = Stopwatch_GetMillisecondsElapsed(1);
+                }
+                else
+                {
+                    WebServer_WriteLine("Url:" + url);
+                    WebServer_WriteLine("Full url:" + fullUrl);
+                    WebServer_WriteLine("Body:" + requestBody);
+                    WebServer_WriteLine("Method:" + method);
+                    WebServer_WriteLine("UserAgent:" + userAgent);
+
+                    WebServer_WriteLine("Query string keys:");
+                    foreach (var key in keys)
+                    {
+                        string value = WebServer_GetRequestQueryStringValue(key);
+                        WebServer_WriteLine($"Key {key} = {value}");
+                    }
+                    WebServer_WriteLine("Form Data keys:");
+                    foreach (var key in formDataKeys)
+                    {
+                        string value = WebServer_GetRequestFormDataValue(key);
+                        WebServer_WriteLine($"Key {key} = {value}");
+                    }
+                    WebServer_SendResponse();
                 }
             }
         }
-
     }
 }

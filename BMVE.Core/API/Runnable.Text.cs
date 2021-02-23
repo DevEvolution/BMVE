@@ -10,23 +10,6 @@ namespace BMVE.Core
     public partial class Runnable
     {
         /// <summary>
-        /// Отображает текст по указанным координатам
-        /// </summary>
-        /// <param name="text">Текст</param>
-        /// <param name="x">Координата X</param>
-        /// <param name="y">Координата Y</param>
-        protected void Text_Write(string text, int x, int y) => TextProxy.Text_Write(text, x, y);
-
-        /// <summary>
-        /// Отображает окрашенный текст по указанным координатам
-        /// </summary>
-        /// <param name="text">Текст</param>
-        /// <param name="x">Координата X</param>
-        /// <param name="y">Координата Y</param>
-        /// <param name="color">Цвет текста</param>
-        protected void Text_Write(string text, int x, int y, int color) => TextProxy.Text_Write(text, x, y, color);
-
-        /// <summary>
         /// Задает семейство шрифтов для отображения текста
         /// </summary>
         /// <param name="fontFamily">Название семейства шрифтов</param>

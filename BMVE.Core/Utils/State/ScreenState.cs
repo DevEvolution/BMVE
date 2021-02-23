@@ -12,14 +12,16 @@ namespace BMVE.Core.Utils.State
 {
     internal static class ScreenState
     {
-        internal static SKColor BackgroundColor = SKColors.Black;
+        internal static SKColor BackgroundColor = new SKColor(0xFF101010);
 
         internal static SKColor ForegroundColor = SKColors.White;
+        
+        internal static int BorderThickness = 1;
 
         internal static FontInfo CurrentFont = new FontInfo()
         {
-            Family = "Arial",
-            Size = 16.0,
+            Family = "Century Gothic",
+            Size = 20.0,
             Stretch = FontStretches.Normal,
             Style = FontStyles.Normal, 
             Weight = FontWeights.Normal

@@ -103,7 +103,8 @@ namespace BMVE.Core.Utils.Drawing
                                 {
                                     Color = text.ForegroundColor,
                                     Typeface = SKTypeface.FromFamilyName(text.FontInfo.Family),
-                                    TextSize = (float)text.FontInfo.Size
+                                    TextSize = (float)text.FontInfo.Size,
+                                    IsAntialias = true
                                 });
 
                                 break;
@@ -122,7 +123,9 @@ namespace BMVE.Core.Utils.Drawing
                                 offscreen.DrawOval(ellipse.X, ellipse.Y, ellipse.Width, ellipse.Height, new SKPaint()
                                 {
                                     Color = ellipse.ForegroundColor,
-                                    Style = SKPaintStyle.Stroke
+                                    Style = SKPaintStyle.Stroke,
+                                    StrokeWidth = ellipse.BorderThickness,
+                                    StrokeCap = SKStrokeCap.Round
                                 });
                                 break;
                             }
@@ -140,7 +143,8 @@ namespace BMVE.Core.Utils.Drawing
                                 offscreen.DrawRect(rectangle.X, rectangle.Y, rectangle.Width, rectangle.Height, new SKPaint()
                                 {
                                     Color = rectangle.ForegroundColor,
-                                    Style = SKPaintStyle.Fill
+                                    Style = SKPaintStyle.Stroke,
+                                    StrokeWidth = rectangle.BorderThickness,
                                 });
                                 break;
                             }
@@ -148,7 +152,8 @@ namespace BMVE.Core.Utils.Drawing
                             {
                                 offscreen.DrawLine(line.X, line.Y, line.X1, line.Y1, new SKPaint()
                                 {
-                                    Color = line.ForegroundColor
+                                    Color = line.ForegroundColor,
+                                    StrokeWidth = line.BorderThickness
                                 });
 
                                 break;
@@ -160,13 +165,9 @@ namespace BMVE.Core.Utils.Drawing
                             }
                         case UIImage image:
                             {
-                                var bounds = image.Image.TransformedImage.Info.Rect;
                                 var width = image.Image.TransformedImage.Width;
                                 var height = image.Image.TransformedImage.Height;
-                                offscreen.DrawBitmap(image.Image.TransformedImage, new SKRect(image.X, image.Y, image.X + image.Width, image.Y + image.Height));
-
-                                //var bounds = image.Image.TransformedImage.GetBounds(ds);
-                                //ds.DrawImage(image.Image.TransformedImage, new Rect(image.X + (image.Width - bounds.Width) / 2, image.Y + (image.Height - bounds.Height) / 2, bounds.Width, bounds.Height), bounds, 1, CanvasImageInterpolation.HighQualityCubic);
+                                offscreen.DrawBitmap(image.Image.TransformedImage, new SKRect(image.X, image.Y, image.X + width, image.Y + height));
                                 break;
                             }
                         default:
@@ -175,7 +176,7 @@ namespace BMVE.Core.Utils.Drawing
                                 {
                                     Color = SKColors.Red
                                 });
-                                //ds.DrawText("Drawing error", 0, 0, Colors.Red);
+                                
                                 break;
                             }
                     }
@@ -199,6 +200,7 @@ namespace BMVE.Core.Utils.Drawing
                 textBlock.Paint(offscreen);
 
             }
+            session.Clear();
             session.DrawBitmap(bufferBitmap, new SKPoint(0, 0));
         }
 

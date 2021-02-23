@@ -76,6 +76,7 @@ namespace BMVE.Core.View
 
         private void CodeView_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            InputState.CapsLockState = ((Keyboard.GetKeyStates(Key.CapsLock) & KeyStates.Toggled) == KeyStates.Toggled);
             InputState.RegisterPressedKey(e.Key);
         }
 

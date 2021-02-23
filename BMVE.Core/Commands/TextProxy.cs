@@ -14,16 +14,6 @@ namespace BMVE.Core.Commands
 {
     internal static class TextProxy
     {
-        internal static void Text_Write(string text, int x, int y)
-        {
-            DrawText(text, x, y, ScreenState.ForegroundColor);
-        }
-
-        internal static void Text_Write(string text, int x, int y, int color)
-        {
-            DrawText(text, x, y, ColorAdjustment.IntRGBToColor(color));
-        }
-
         internal static void Text_SetFont(string fontFamily)
         {
             ScreenState.CurrentFont.Family = fontFamily;
@@ -66,34 +56,6 @@ namespace BMVE.Core.Commands
         internal static double Text_GetFontSize()
         {
             return ScreenState.CurrentFont.Size;
-        }
-
-        private static void DrawText(string text, int x, int y, SKColor color)
-        {
-            var font = new Utils.Utils.FontInfo()
-            {
-                Family = ScreenState.CurrentFont.Family,
-                Size = ScreenState.CurrentFont.Size,
-                Stretch = ScreenState.CurrentFont.Stretch,
-                Weight = ScreenState.CurrentFont.Weight,
-                Style = ScreenState.CurrentFont.Style
-            };
-
-            DrawingPipeline.Add(new UIText()
-            {
-                Text = text,
-                X = x,
-                Y = y,
-                ForegroundColor = color,
-                FontInfo = new Utils.Utils.FontInfo()
-                {
-                    Family = ScreenState.CurrentFont.Family,
-                    Size = ScreenState.CurrentFont.Size,
-                    Stretch = ScreenState.CurrentFont.Stretch,
-                    Weight = ScreenState.CurrentFont.Weight,
-                    Style = ScreenState.CurrentFont.Style
-                }
-            });
         }
     }
 }

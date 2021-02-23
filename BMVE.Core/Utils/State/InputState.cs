@@ -14,6 +14,8 @@ namespace BMVE.Core.Utils.State
     {
         private static volatile ConcurrentDictionary<Key, bool> _pressedKeys = new ConcurrentDictionary<Key, bool>();
         private static volatile ConcurrentDictionary<MouseButton, bool> _pressedMouseButtons = new ConcurrentDictionary<MouseButton, bool>();
+        private static volatile bool _capsLockKey = false;
+        private static volatile bool _numLockKey = false;
 
         private static volatile InputLanguage _inputLanguage = InputLanguage.English;
 
@@ -26,6 +28,8 @@ namespace BMVE.Core.Utils.State
         };
 
         internal static bool HasPressed { get => _pressedKeys.Values.Contains(true); }
+
+        internal static bool CapsLockState { get => _capsLockKey; set => _capsLockKey = value; }
 
         internal static void RegisterPressedKey(Key vk)
         {
@@ -86,6 +90,7 @@ namespace BMVE.Core.Utils.State
             if (!_pressedKeys.Any(x => x.Value == true)) return new List<char>();
 
             bool isShiftPressed = _pressedKeys.Where(x => x.Value == true).Any(x => x.Key == Key.LeftShift || x.Key == Key.RightShift);
+            bool isCapsToggled = CapsLockState;
 
             List<char> input = new List<char>();
             VKLayout currentLayout = KeyboardLayouts[_inputLanguage];
@@ -95,9 +100,17 @@ namespace BMVE.Core.Utils.State
             {
                 if (currentLayout.KeyMap.TryGetValue(key, out CharShiftPair charmap))
                 {
-                    input.Add(isShiftPressed ?
-                        charmap.ShiftChar :
-                        charmap.Char);
+                    char symbol;
+                    if (char.IsLetter(charmap.Char))
+                    {
+                        if (isCapsToggled) symbol = isShiftPressed ? charmap.Char : charmap.ShiftChar;
+                        else symbol = isShiftPressed ? charmap.ShiftChar : charmap.Char;
+                    }
+                    else 
+                    {
+                        symbol = isShiftPressed ? charmap.ShiftChar : charmap.Char;
+                    }
+                    input.Add(symbol);
                 }
             }
 

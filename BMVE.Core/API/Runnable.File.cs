@@ -72,6 +72,14 @@ namespace BMVE.Core
         protected string File_ReadLine(int number) => FileProxy.File_ReadLine(number);
 
         /// <summary>
+        /// Чтение бинарных данных из файла
+        /// </summary>
+        /// <param name="number">Номер файла</param>
+        /// <param name="length">Количество байт, которое необходимо считать</param>
+        /// <returns>Бинарные данные из файла</returns>
+        protected byte[] File_ReadBytes(int number, int length) => FileProxy.File_ReadBytes(number, length);
+
+        /// <summary>
         /// Запись строки текста в файл, после записи осуществляет переход на новую строку
         /// </summary>
         /// <param name="number">Номер файла</param>
@@ -84,6 +92,13 @@ namespace BMVE.Core
         /// <param name="number">Номер файла</param>
         /// <param name="text">Строка для записи</param>
         protected void File_Write(int number, params string[] text) => FileProxy.File_Write(number, text);
+
+        /// <summary>
+        /// Запись строки текста в файл, не осуществляет переход на новую строку
+        /// </summary>
+        /// <param name="number">Номер файла</param>
+        /// <param name="data">Бинарные данные для записи</param>
+        protected void File_WriteBytes(int number, byte[] data) => FileProxy.File_WriteBytes(number, data);
 
         /// <summary>
         /// Проверяет, достигнут ли конец файла при чтении
@@ -134,6 +149,27 @@ namespace BMVE.Core
         /// </summary>
         /// <param name="directoryName">Путь к каталогу</param>
         protected void File_DeleteDirectory(string directoryName) => FileProxy.File_DeleteDirectory(directoryName);
+
+        /// <summary>
+        /// Получить размер файла в байтах
+        /// </summary>
+        /// <param name="filename">Имя файла</param>
+        /// <returns>Размер файла в байтах</returns>
+        protected long File_GetSize(string filename) => FileProxy.File_GetSize(filename);
+
+        /// <summary>
+        /// Получить текущий отступ файла для чтения/записи
+        /// </summary>
+        /// <param name="number">Номер файла</param>
+        /// <returns>Отступ файла для чтения/записи</returns>
+        protected long File_GetOffset(int number) => FileProxy.File_GetOffset(number);
+
+        /// <summary>
+        /// Задать текущий отступ файла для чтения/записи
+        /// </summary>
+        /// <param name="number">Номер файла</param>
+        /// <param name="offset">Новый отступ файла для чтения/записи</param>
+        protected void File_SetOffset(int number, long offset) => FileProxy.File_SetOffset(number, offset);
 
         /// <summary>
         /// Переименовывает файл

@@ -38,7 +38,7 @@ namespace BMVE.Core.Commands
 
             DrawingPipeline.Add(inputUIText);
 
-            var previousMode = SystemProxy.System_GetDrawingMode();
+            var previousMode = ScreenProxy.Screen_GetDrawingMode();
 
             do
             {
@@ -46,7 +46,7 @@ namespace BMVE.Core.Commands
             }
             while (currentInput.Contains('\n'));
 
-            SystemProxy.System_SetDrawingMode(Enums.RenderingMode.Buffered);
+            ScreenProxy.Screen_SetDrawingMode(Enums.RenderingMode.Buffered);
 
             do
             {
@@ -64,14 +64,14 @@ namespace BMVE.Core.Commands
                     if (entry.Length > 0)
                         inputString.Append(entry);
                     inputUIText.Text = inputString.ToString();
-                    DrawingProxy.Screen_Render();
+                    ScreenProxy.Screen_Render();
                 }
 
                 previousInput = new List<char>(currentInput);
             }
             while (!currentInput.Contains('\n'));
 
-            SystemProxy.System_SetDrawingMode(previousMode);
+            ScreenProxy.Screen_SetDrawingMode(previousMode);
 
             return inputString.ToString();
         }
