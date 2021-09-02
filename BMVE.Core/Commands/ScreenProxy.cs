@@ -3,6 +3,7 @@ using BMVE.Core.Enums;
 using BMVE.Core.Utils.Adjustment;
 using BMVE.Core.Utils.Drawing;
 using BMVE.Core.Utils.State;
+using BMVE.Core.Utils.Utils;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -26,8 +27,7 @@ namespace BMVE.Core.Commands
 
         internal static void Screen_SetLineSize(int size)
         {
-            if (size < 1)
-                throw new Exception("Размер линии не может быть меньше 1");
+            AssertLineHasCorrectWidth(size);
 
             ScreenState.BorderThickness = size;
         }
@@ -107,23 +107,29 @@ namespace BMVE.Core.Commands
 
         internal static void Screen_DrawImage(int number, int x, int y)
         {
-            if (!ImageProxy.imageSocketDict.ContainsKey(number))
-                throw new Exception($"Изображение №{number} не открыто");
+            AssertImageIsOpen(number);
+
+            var socket = ManagedSocketResolver
+                .ImageSocket
+                .GetSocket(number);
 
             DrawingPipeline.Add(new UIImage()
             {
                 X = x,
                 Y = y,
-                Width = ImageProxy.imageSocketDict[number].Image.Width,
-                Height = ImageProxy.imageSocketDict[number].Image.Height,
-                Image = ImageProxy.imageSocketDict[number]
+                Width = socket.Image.Width,
+                Height = socket.Image.Height,
+                Image = socket
             });
         }
 
         internal static void Screen_DrawImage(int number, int x, int y, int width, int height)
         {
-            if (!ImageProxy.imageSocketDict.ContainsKey(number))
-                throw new Exception($"Изображение №{number} не открыто");
+            AssertImageIsOpen(number);
+
+            var socket = ManagedSocketResolver
+                .ImageSocket
+                .GetSocket(number);
 
             DrawingPipeline.Add(new UIImage()
             {
@@ -131,7 +137,7 @@ namespace BMVE.Core.Commands
                 Y = y,
                 Width = width,
                 Height = height,
-                Image = ImageProxy.imageSocketDict[number]
+                Image = socket
             });
         }
 
@@ -211,6 +217,22 @@ namespace BMVE.Core.Commands
                     Style = ScreenState.CurrentFont.Style
                 }
             });
+        }
+
+        private static void AssertImageIsOpen(int number)
+        {
+            if (!ManagedSocketResolver.ImageSocket.IsSocketBusy(number))
+            {
+                throw new Exception($"Изображение №{number} не открыто");
+            }
+        }
+
+        private static void AssertLineHasCorrectWidth(int size)
+        {
+            if (size < 1)
+            {
+                throw new Exception("Размер линии не может быть меньше 1");
+            }
         }
     }
 }

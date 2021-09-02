@@ -95,24 +95,23 @@ namespace BMVE.Core.Commands
             return WebUtility.UrlDecode(_webServer.request.QueryString[key]);
         }
 
-        internal static string WebServer_ReadRequestBody()
+        internal static byte[] WebServer_ReadRequestBody()
         {
             CheckWebServerStatus();
 
-            using (var memStream = new MemoryStream())
-            {
-                _webServer.request.InputStream.CopyTo(memStream);
-                memStream.Position = 0;
-                using (var istream = new StreamReader(memStream))
-                {
-                    return istream.ReadToEnd();
-                }
-            }
+            return _webServer.currentRequestInfo.RequestBodyContent;
+        }
+
+        internal static string WebServer_ReadRequestBodyString()
+        {
+            CheckWebServerStatus();
+
+            return Encoding.Unicode.GetString(_webServer.currentRequestInfo.RequestBodyContent);
         }
 
         internal static string[] WebServer_GetRequestFormDataKeys()
         {
-            var formDataString = WebServer_ReadRequestBody();
+            var formDataString = Encoding.Unicode.GetString(WebServer_ReadRequestBody());
             var keys = formDataString
                 .Split('&')
                 .Where(x => !string.IsNullOrEmpty(x))
@@ -124,7 +123,7 @@ namespace BMVE.Core.Commands
 
         internal static string WebServer_GetRequestFormDataValue(string key)
         {
-            var formDataString = WebServer_ReadRequestBody();
+            var formDataString = Encoding.Unicode.GetString(WebServer_ReadRequestBody());
             var dictionary = formDataString
                 .Split('&')
                 .Where(x => !string.IsNullOrEmpty(x))

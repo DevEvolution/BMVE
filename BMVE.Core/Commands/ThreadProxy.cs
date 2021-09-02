@@ -1,4 +1,5 @@
 ﻿using BMVE.Core.Utils.Utils;
+using BMVE.Core.Utils.Utils.Socket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,96 +11,129 @@ namespace BMVE.Core.Commands
 {
     internal static class ThreadProxy
     {
-        private static Dictionary<int, ThreadSocket> threadSocketDict = new Dictionary<int, ThreadSocket>();
-        private static Dictionary<int, object> threadSyncRootDict = new Dictionary<int, object>();
-
         internal static void Thread_Create(int number, Action function)
         {
-            if (threadSocketDict.ContainsKey(number))
-            {
-                throw new Exception($"Поток №{number} уже был открыт");
-            }
+            AssertSocketIsFree(number);
 
-            threadSocketDict[number] = new ThreadSocket()
+            var socket = new ThreadSocket()
             {
                 Function = function,
                 Thread = new System.Threading.Thread(new System.Threading.ThreadStart(function))
             };
-            threadSocketDict[number].Thread.Start();
+            socket.Thread.Start();
+
+            ManagedSocketResolver
+                .ThreadSocket
+                .OpenNewSocket(number, socket);
         }
 
         internal static void Thread_Create(int number, Action<string> function, string parameter)
         {
-            if (threadSocketDict.ContainsKey(number))
-            {
-                throw new Exception($"Поток №{number} уже был открыт");
-            }
+            AssertSocketIsFree(number);
 
-            threadSocketDict[number] = new ThreadSocket()
+            var socket = new ThreadSocket()
             {
-                Thread = new System.Threading.Thread(new System.Threading.ParameterizedThreadStart(new Action<object>((x) => function(x.ToString()))))
+                Thread = new System.Threading.Thread(
+                    new System.Threading.ParameterizedThreadStart(
+                        new Action<object>((x) => function(x.ToString()))
+                        )
+                    )
             };
-            threadSocketDict[number].Thread.Start(parameter);
+            socket.Thread.Start(parameter);
+
+            ManagedSocketResolver
+                .ThreadSocket
+                .OpenNewSocket(number, socket);
         }
 
         internal static void Thread_Pause(int number)
         {
-            if (!threadSocketDict.ContainsKey(number))
-            {
-                throw new Exception($"Поток №{number} не был создан");
-            }
+            AssertSocketIsOpen(number);
 
-            threadSocketDict[number].Thread.Suspend();
+            ManagedSocketResolver
+                .ThreadSocket
+                .GetSocket(number)
+                .Thread
+                .Suspend();
         }
 
         internal static void Thread_Continue(int number)
         {
-            if (!threadSocketDict.ContainsKey(number))
-            {
-                throw new Exception($"Поток №{number} не был создан");
-            }
+            AssertSocketIsOpen(number);
 
-            threadSocketDict[number].Thread.Resume();
+            ManagedSocketResolver
+                .ThreadSocket.GetSocket(number)
+                .Thread
+                .Resume();
         }
 
         internal static void Thread_Lock(int lockNumber)
         {
-            if (!threadSyncRootDict.ContainsKey(lockNumber))
+            if (!ManagedSocketResolver
+                .ThreadSyncSocket
+                .IsSocketBusy(lockNumber))
             {
-                threadSyncRootDict[lockNumber] = new object();
+                ManagedSocketResolver
+                .ThreadSyncSocket
+                .OpenNewSocket(lockNumber, new ThreadSyncSocket());
             }
 
-            //bool isLocked = false;
-            Monitor.Enter(threadSyncRootDict[lockNumber]);
+            var syncRoot = ManagedSocketResolver
+                .ThreadSyncSocket
+                .GetSocket(lockNumber)
+                .SyncRoot;
+
+            Monitor.Enter(syncRoot);
         }
 
         internal static void Thread_Unlock(int lockNumber)
         {
-            if (!threadSyncRootDict.ContainsKey(lockNumber))
-            {
-                throw new Exception($"Блокировка №{lockNumber} не была создана");
-            }
+            AssertLockIsExists(lockNumber);
 
-            //bool isLocked = false;
-            Monitor.Exit(threadSyncRootDict[lockNumber]);
+            var syncRoot = ManagedSocketResolver
+                .ThreadSyncSocket
+                .GetSocket(lockNumber)
+                .SyncRoot;
+
+            Monitor.Exit(syncRoot);
         }
 
         internal static void Thread_Stop(int number)
         {
-            if (!threadSocketDict.ContainsKey(number))
+            AssertSocketIsOpen(number);
+
+            ManagedSocketResolver
+                .ThreadSocket
+                .CloseSocket(number);
+        }
+
+        private static void AssertSocketIsOpen(int number)
+        {
+            if (!ManagedSocketResolver
+                .ThreadSocket
+                .IsSocketBusy(number))
             {
                 throw new Exception($"Поток №{number} не был создан");
             }
+        }
 
-            try
+        private static void AssertSocketIsFree(int number)
+        {
+            if (ManagedSocketResolver
+                .ThreadSocket
+                .IsSocketBusy(number))
             {
-                threadSocketDict[number].Thread.Abort();
+                throw new Exception($"Поток №{number} уже был открыт");
             }
-            finally
+        }
+
+        private static void AssertLockIsExists(int number)
+        {
+            if (!ManagedSocketResolver
+                .ThreadSyncSocket
+                .IsSocketBusy(number))
             {
-                threadSocketDict[number].Thread = null;
-                threadSocketDict[number].Function = null;
-                threadSocketDict.Remove(number);
+                throw new Exception($"Блокировка №{number} не была создана");
             }
         }
     }

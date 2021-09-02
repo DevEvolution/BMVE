@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Dev.Evolution")]
 [assembly: AssemblyProduct("Black Magic Virtual Environment")]
-[assembly: AssemblyCopyright("Copyright © Dev.Evolution 2019")]
+[assembly: AssemblyCopyright("Copyright © Dev.Evolution 2021")]
 [assembly: AssemblyTrademark("BMVE")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // Можно задать все значения или принять номера сборки и редакции по умолчанию 
 // используя "*", как показано ниже:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.2.0.0")]
-[assembly: AssemblyFileVersion("2.2.0.0")]
+[assembly: AssemblyVersion("4.0.0.0")]
+[assembly: AssemblyFileVersion("4.0.0.0")]

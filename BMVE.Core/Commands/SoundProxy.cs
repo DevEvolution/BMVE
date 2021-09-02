@@ -14,101 +14,124 @@ namespace BMVE.Core.Commands
 {
     internal static class SoundProxy
     {
-        private static Dictionary<int, SoundSocket> soundSocketDict = new Dictionary<int, SoundSocket>();
-
         internal static void Sound_Load(int number, string filename)
         {
-            CheckSoundAlreadyOpened(number);
+            AssertSoundSocketIsFree(number);
             AudioFormat format = GetAudioFormat(filename);
 
-            soundSocketDict[number] = new SoundSocket() { Filename = filename };
-            soundSocketDict[number].Stream = new MemoryStream(File.ReadAllBytes(filename));
-            soundSocketDict[number].Stream.Position = 0;
+            var socket = new SoundSocket() 
+            { 
+                Filename = filename, 
+                Stream = new MemoryStream(File.ReadAllBytes(filename))
+            };
+            socket.Stream.Position = 0;
             switch (format)
             {
                 case AudioFormat.Mp3:
-                    soundSocketDict[number].Reader = new Mp3FileReader(soundSocketDict[number].Stream);
+                    socket.Reader = new Mp3FileReader(socket.Stream);
                     break;
                 
                 case AudioFormat.Wave:
-                    soundSocketDict[number].Reader = new WaveFileReader(soundSocketDict[number].Stream);
+                    socket.Reader = new WaveFileReader(socket.Stream);
                     break;
 
                 case AudioFormat.Ogg:
-                    soundSocketDict[number].Reader = new VorbisWaveReader(soundSocketDict[number].Stream);
+                    socket.Reader = new VorbisWaveReader(socket.Stream);
                     break;
             }
-            soundSocketDict[number].Player = new WaveOut();
-            soundSocketDict[number].Player.Init(soundSocketDict[number].Reader);
-            soundSocketDict[number].SocketState = SoundSocketState.Loaded;
+            socket.Player = new WaveOut();
+            socket.Player.Init(socket.Reader);
+            socket.SocketState = SoundSocketState.Loaded;
+
+            ManagedSocketResolver
+                .SoundSocket
+                .OpenNewSocket(number, socket);
         }
 
-        internal static bool Sound_IsLoaded(int number) => soundSocketDict.ContainsKey(number) && soundSocketDict[number].SocketState != Enums.SoundSocketState.None;
+        internal static bool Sound_IsLoaded(int number)
+            => ManagedSocketResolver
+            .SoundSocket
+            .IsSocketBusy(number) 
+            && ManagedSocketResolver
+            .SoundSocket[number]
+            .SocketState != Enums.SoundSocketState.None;
+
         internal static void Sound_Play(int number)
         {
-            CheckSocketNotOpened(number);
+            AssertSocketIsOpened(number);
 
-            soundSocketDict[number].Player.Play();
+            ManagedSocketResolver
+                .SoundSocket[number]
+                .Player
+                .Play();
         }
 
         internal static void Sound_Pause(int number) 
         {
-            CheckSocketNotOpened(number);
+            AssertSocketIsOpened(number);
 
-            soundSocketDict[number].Player.Pause();
+            ManagedSocketResolver
+                .SoundSocket[number]
+                .Player
+                .Pause();
         }
         internal static void Sound_Stop(int number)
         {
-            CheckSocketNotOpened(number);
+            AssertSocketIsOpened(number);
 
-            soundSocketDict[number].Player.Stop();
+            ManagedSocketResolver
+                .SoundSocket[number]
+                .Player
+                .Stop();
         }
 
         internal static void Sound_SetVolume(int number, int volume)
         {
-            CheckSocketNotOpened(number);
+            AssertSocketIsOpened(number);
+
             if (volume < 0 || volume > 100)
                 throw new Exception("Громкость аудио не может быть больше 100");
 
-            soundSocketDict[number].Player.Volume = volume / 100f;
+            ManagedSocketResolver
+                .SoundSocket[number]
+                .Player
+                .Volume = volume / 100f;
         }
 
         internal static int Sound_GetVolume(int number)
         {
-            CheckSocketNotOpened(number);
+            AssertSocketIsOpened(number);
 
-            return (int)(soundSocketDict[number].Player.Volume * 100);
+            return (int)(ManagedSocketResolver
+                .SoundSocket[number]
+                .Player
+                .Volume * 100);
         }
 
         internal static void Sound_Close(int number)
         {
-            CheckSocketNotOpened(number);
-            soundSocketDict[number].SocketState = Enums.SoundSocketState.None;
-            soundSocketDict[number].Player.Stop();
-            soundSocketDict[number].Reader.Dispose();
-            soundSocketDict[number].Stream.Dispose();
-            soundSocketDict[number].Player.Dispose();
-            soundSocketDict[number] = null;
+            AssertSocketIsOpened(number);
+
+            ManagedSocketResolver
+                .SoundSocket
+                .CloseSocket(number);
         }
 
-        private static void CheckSoundAlreadyOpened(int number)
+        private static void AssertSoundSocketIsFree(int number)
         {
-            if (soundSocketDict.ContainsKey(number) && soundSocketDict[number].SocketState != Enums.SoundSocketState.Stopped)
+            if (ManagedSocketResolver.SoundSocket.IsSocketBusy(number))
             {
-                var socket = soundSocketDict[number];
-                switch (socket.SocketState)
-                {
-                    case Enums.SoundSocketState.Stopped:
-                    case Enums.SoundSocketState.Playing:
-                        throw new Exception($"Аудиофайл №{number} уже открыт");
-                }
+                throw new Exception($"Аудиофайл №{number} уже открыт");
             }
         }
 
-        private static void CheckSocketNotOpened(int number)
+        private static void AssertSocketIsOpened(int number)
         {
-            if (!soundSocketDict.ContainsKey(number) || soundSocketDict[number].SocketState == Enums.SoundSocketState.None)
+            if (!ManagedSocketResolver.SoundSocket.IsSocketBusy(number)
+                || ManagedSocketResolver.SoundSocket[number].SocketState == Enums.SoundSocketState.None)
+            {
                 throw new Exception($"Аудиофайл №{number} не открыт");
+            }
         }
 
         private static AudioFormat GetAudioFormat(string filename)

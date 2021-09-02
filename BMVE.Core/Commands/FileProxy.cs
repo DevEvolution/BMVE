@@ -10,55 +10,89 @@ namespace BMVE.Core.Commands
 {
     internal static class FileProxy
     {
-        internal static bool File_Exists(string path) => File.Exists(path);
-        internal static bool File_DirectoryExists(string path) => Directory.Exists(path);
-        internal static bool File_IsOpened(int number) => fileSocketDict.ContainsKey(number) && fileSocketDict[number].SocketState != Enums.FileSocketState.Closed;
-        internal static bool File_IsOpenedToRead(int number) => fileSocketDict.ContainsKey(number) && fileSocketDict[number].SocketState == Enums.FileSocketState.OpenedToRead;
-        internal static bool File_IsOpenedToWrite(int number) => fileSocketDict.ContainsKey(number) && fileSocketDict[number].SocketState == Enums.FileSocketState.OpenedToWrite;
+        internal static bool File_Exists(string path) 
+            => File.Exists(path);
+
+        internal static bool File_DirectoryExists(string path) 
+            => Directory.Exists(path);
+
+        internal static bool File_IsOpened(int number) 
+            => ManagedSocketResolver.FileSocket.IsSocketBusy(number) 
+            && ManagedSocketResolver.FileSocket[number].SocketState != Enums.FileSocketState.Closed;
+
+        internal static bool File_IsOpenedToRead(int number) 
+            => ManagedSocketResolver.FileSocket.IsSocketBusy(number) 
+            && ManagedSocketResolver.FileSocket[number].SocketState == Enums.FileSocketState.OpenedToRead;
+
+        internal static bool File_IsOpenedToWrite(int number) 
+            => ManagedSocketResolver.FileSocket.IsSocketBusy(number) 
+            && ManagedSocketResolver.FileSocket[number].SocketState == Enums.FileSocketState.OpenedToWrite;
+
         internal static void File_OpenToRead(int number, string path)
         {
-            CheckFileAlreadyOpened(number);
+            AssertFileIsNotOpened(number);
 
             Stream fileStream = new FileStream(path, FileMode.Open);
-            fileSocketDict[number] = new FileSocket() { Filename = path, Stream = fileStream };
-            fileSocketDict[number].Reader = new StreamReader(fileStream);
-            fileSocketDict[number].SocketState = Enums.FileSocketState.OpenedToRead;
+            var socket = new FileSocket() 
+            { 
+                Filename = path, 
+                Stream = fileStream,
+                Reader = new StreamReader(fileStream),
+                SocketState = Enums.FileSocketState.OpenedToRead
+            };
+
+            ManagedSocketResolver
+                .FileSocket
+                .OpenNewSocket(number, socket);
         }
 
         internal static void File_OpenToWrite(int number, string path)
         {
-            CheckFileAlreadyOpened(number);
+            AssertFileIsNotOpened(number);
 
             Stream fileStream = new FileStream(path, FileMode.Create);
-            fileSocketDict[number] = new FileSocket() { Filename = path, Stream = fileStream };
-            fileSocketDict[number].Writer = new StreamWriter(fileStream);
-            fileSocketDict[number].SocketState = Enums.FileSocketState.OpenedToWrite;
+
+            var socket = new FileSocket()
+            {
+                Filename = path,
+                Stream = fileStream,
+                Writer = new StreamWriter(fileStream),
+                SocketState = Enums.FileSocketState.OpenedToWrite
+            };
+
+            ManagedSocketResolver
+                .FileSocket
+                .OpenNewSocket(number, socket);
         }
         internal static void File_Close(int number)
         {
-            if (fileSocketDict.ContainsKey(number) && fileSocketDict[number].SocketState != Enums.FileSocketState.Closed)
-            {
-                fileSocketDict[number].Reader?.Dispose();
-                fileSocketDict[number].Writer?.Dispose();
-                fileSocketDict[number].Stream?.Dispose();
-                fileSocketDict.Remove(number);
-            }
+            AssertSocketExists(number);
+
+            ManagedSocketResolver
+                .FileSocket
+                .CloseSocket(number);
         }
 
         internal static string File_ReadLine(int number)
         {
-            CheckSocketExists(number);
-            CheckSocketNotOpenedToRead(number);
+            AssertSocketExists(number);
+            AssertSocketNotOpenedToRead(number);
 
-            return fileSocketDict[number].Reader.ReadLine();
+            return ManagedSocketResolver
+                .FileSocket[number]
+                .Reader
+                .ReadLine();
         }
 
         internal static byte[] File_ReadBytes(int number, int length)
         {
-            CheckSocketExists(number);
-            CheckSocketNotOpenedToRead(number);
+            AssertSocketExists(number);
+            AssertSocketNotOpenedToRead(number);
 
-            var baseStream = fileSocketDict[number].Reader.BaseStream;
+            var baseStream = ManagedSocketResolver
+                .FileSocket[number]
+                .Reader
+                .BaseStream;
             var buffer = new byte[length];
 
             baseStream.Read(buffer, (int)baseStream.Position, length);
@@ -68,138 +102,192 @@ namespace BMVE.Core.Commands
 
         internal static void File_WriteLine(int number, params string[] text)
         {
-            CheckSocketExists(number);
-            CheckSocketNotOpenedToWrite(number);
+            AssertSocketExists(number);
+            AssertSocketNotOpenedToWrite(number);
 
             string fullText = string.Concat(text.Select(x => x.ToString()));
 
-            fileSocketDict[number].Writer.WriteLine(fullText);
+            ManagedSocketResolver
+                .FileSocket[number]
+                .Writer
+                .WriteLine(fullText);
         }
 
         internal static void File_Write(int number, params string[] text)
         {
-            CheckSocketExists(number);
-            CheckSocketNotOpenedToWrite(number);
+            AssertSocketExists(number);
+            AssertSocketNotOpenedToWrite(number);
 
             string fullText = string.Concat(text.Select(x => x.ToString()));
 
-            fileSocketDict[number].Writer.Write(fullText);
+            ManagedSocketResolver
+                .FileSocket[number]
+                .Writer
+                .Write(fullText);
         }
 
         internal static void File_WriteBytes(int number, byte[] data)
         {
-            CheckSocketExists(number);
-            CheckSocketNotOpenedToWrite(number);
+            AssertSocketExists(number);
+            AssertSocketNotOpenedToWrite(number);
 
-            var baseStream = fileSocketDict[number].Writer.BaseStream;
+            var baseStream = ManagedSocketResolver
+                .FileSocket[number]
+                .Writer
+                .BaseStream;
 
             baseStream.Write(data, (int)baseStream.Position, data.Length);
         }
 
         internal static bool File_IsEnd(int number)
         {
-            CheckSocketExists(number);
-            CheckSocketNotOpenedToRead(number);
+            AssertSocketExists(number);
+            AssertSocketNotOpenedToRead(number);
 
-            return fileSocketDict[number].Reader.EndOfStream;
+            return ManagedSocketResolver
+                .FileSocket[number]
+                .Reader
+                .EndOfStream;
         }
 
-        internal static string[] File_GetDirectories() => Directory.GetDirectories(Environment.CurrentDirectory);
-        internal static string[] File_GetFiles() => Directory.GetFiles(Environment.CurrentDirectory);
+        internal static string[] File_GetDirectories() 
+            => Directory.GetDirectories(Environment.CurrentDirectory);
+
+        internal static string[] File_GetFiles() 
+            => Directory.GetFiles(Environment.CurrentDirectory);
+
         internal static void File_SetCurrentDirectory(string path)
         {
-            if (!Directory.Exists(path))
-                throw new Exception("Указанный путь не существует");
+            AssertDirectoryIsExists(path);
 
             Environment.CurrentDirectory = path;
         }
-        internal static string File_GetCurrentDirectory() => Environment.CurrentDirectory;
-        internal static void File_CreateDirectory(string directoryName) => Directory.CreateDirectory(directoryName);
+        internal static string File_GetCurrentDirectory() 
+            => Environment.CurrentDirectory;
+
+        internal static void File_CreateDirectory(string directoryName) 
+            => Directory.CreateDirectory(directoryName);
+
         internal static void File_RenameDirectory(string oldName, string newName) 
         {
-            if (!Directory.Exists(oldName))
-                throw new Exception("Указанная папка не существует");
+            AssertDirectoryIsExists(oldName);
 
-            Directory.Move(oldName, new PathResolver().ResolvePath(newName).Filename);
+            var newPath = new PathResolver()
+                .ResolvePath(newName)
+                .Filename;
+
+            Directory.Move(oldName, newPath);
         }
+
         internal static void File_DeleteDirectory(string directoryName)
         {
-            if (!Directory.Exists(directoryName))
-                throw new Exception("Указанная папка не существует");
+            AssertDirectoryIsExists(directoryName);
 
             Directory.Delete(directoryName); 
         }
         internal static void File_Rename(string oldName, string newName) 
         {
-            if (!File.Exists(oldName))
-                throw new Exception("Указанный файл не существует");
+            AssertFileIsExists(oldName);
 
-            File.Move(oldName, new PathResolver().ResolvePath(newName).Filename); 
+            var newPath = new PathResolver()
+                .ResolvePath(newName)
+                .Filename;
+
+            File.Move(oldName, newPath); 
         }
-        internal static void File_Delete(string fileName) => File.Delete(fileName);
-        internal static void File_Copy(string path, string newPath) => File.Copy(path, newPath);
-        internal static void File_Move(string path, string newPath) => File.Move(path, newPath);
+        internal static void File_Delete(string fileName)
+        {
+            AssertFileIsExists(fileName);
 
-        internal static string File_GetFilenameFromPath(string path) => new PathResolver().ResolvePath(path).Filename;
-        internal static string File_GetDirectoryPathFromPath(string path) => new PathResolver().ResolvePath(path).Path;
+            File.Delete(fileName); 
+        }
+
+        internal static void File_Copy(string path, string newPath)
+        {
+            AssertFileIsExists(path);
+
+            File.Copy(path, newPath);
+        }
+
+        internal static void File_Move(string path, string newPath)
+        {
+            AssertFileIsExists(path);
+
+            File.Move(path, newPath);
+        }
+
+        internal static string File_GetFilenameFromPath(string path) 
+            => new PathResolver()
+            .ResolvePath(path)
+            .Filename;
+
+        internal static string File_GetDirectoryPathFromPath(string path)
+            => new PathResolver()
+            .ResolvePath(path)
+            .Path;
 
         internal static long File_GetSize(string path)
         {
-            if (!File.Exists(path))
-                throw new Exception("Указанный файл не существует");
+            AssertFileIsExists(path);
 
             return new FileInfo(path).Length;
         }
 
         internal static long File_GetOffset(int number)
         {
-            var actual = fileSocketDict.ContainsKey(number) && fileSocketDict[number].SocketState != Enums.FileSocketState.Closed;
-            if (!actual)
-            {
-                throw new Exception($"Файл №{number} не открыт");
-            }
+            AssertFileIsOpened(number);
 
-            return fileSocketDict[number].Stream.Position;
+            return ManagedSocketResolver
+                .FileSocket[number]
+                .Stream
+                .Position;
         }
 
         internal static void File_SetOffset(int number, long offset)
         {
-            var actual = fileSocketDict.ContainsKey(number) && fileSocketDict[number].SocketState != Enums.FileSocketState.Closed;
-            if (!actual)
-            {
-                throw new Exception($"Файл №{number} не открыт");
-            }
+            AssertFileIsOpened(number);
 
-
-            fileSocketDict[number].Stream.Position = offset;
+            ManagedSocketResolver
+                .FileSocket[number]
+                .Stream
+                .Position = offset;
         }
 
-        #region Implementation
-        private static Dictionary<int, FileSocket> fileSocketDict = new Dictionary<int, FileSocket>();
+        #region Assert
 
-        private static void CheckSocketExists(int number)
+        private static void AssertSocketExists(int number)
         {
-            if (!fileSocketDict.ContainsKey(number))
+            if (!ManagedSocketResolver
+                .FileSocket
+                .IsSocketBusy(number))
                 throw new Exception($"Файл №{number} не был открыт");
         }
 
-        private static void CheckSocketNotOpenedToRead(int number)
+        private static void AssertSocketNotOpenedToRead(int number)
         {
-            if (fileSocketDict[number].SocketState != Enums.FileSocketState.OpenedToRead)
+            if (ManagedSocketResolver
+                .FileSocket[number]
+                .SocketState != Enums.FileSocketState.OpenedToRead)
                 throw new Exception($"Файл №{number} не открыт для чтения");
         }
 
-        private static void CheckSocketNotOpenedToWrite(int number)
+        private static void AssertSocketNotOpenedToWrite(int number)
         {
-            if (fileSocketDict[number].SocketState != Enums.FileSocketState.OpenedToWrite)
+            if (ManagedSocketResolver
+                .FileSocket[number]
+                .SocketState != Enums.FileSocketState.OpenedToWrite)
                 throw new Exception($"Файл №{number} не открыт для записи");
         }
 
-        private static void CheckFileAlreadyOpened(int number)
+        private static void AssertFileIsNotOpened(int number)
         {
-            if (fileSocketDict.ContainsKey(number) && fileSocketDict[number].SocketState != Enums.FileSocketState.Closed)
+            if (ManagedSocketResolver
+                .FileSocket
+                .IsSocketBusy(number))
             {
-                var socket = fileSocketDict[number];
+                var socket = ManagedSocketResolver
+                    .FileSocket[number];
+
                 switch (socket.SocketState)
                 {
                     case Enums.FileSocketState.OpenedToRead:
@@ -211,6 +299,27 @@ namespace BMVE.Core.Commands
                     case Enums.FileSocketState.OpenedToAppend:
                         throw new Exception($"Файл №{number} уже открыт для дозаписи");
                 }
+            }
+        }
+
+        private static void AssertFileIsExists(string path)
+        {
+            if (!File.Exists(path))
+                throw new Exception("Указанный файл не существует");
+        }
+
+        private static void AssertDirectoryIsExists(string path)
+        {
+            if (!Directory.Exists(path))
+                throw new Exception("Указанная папка не существует");
+        }
+
+        private static void AssertFileIsOpened(int number)
+        {
+            if (!ManagedSocketResolver.FileSocket.IsSocketBusy(number)
+                || ManagedSocketResolver.FileSocket[number].SocketState != Enums.FileSocketState.Closed)
+            {
+                throw new Exception($"Файл №{number} не открыт");
             }
         }
         #endregion

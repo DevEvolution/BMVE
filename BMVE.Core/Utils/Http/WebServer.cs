@@ -1,5 +1,7 @@
-﻿using System;
+﻿using BMVE.Core.Utils.Utils;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -13,6 +15,7 @@ namespace BMVE.Core.Utils.Http
         private HttpListenerContext _context;
         internal HttpListenerRequest request;
         internal HttpListenerResponse response;
+        internal RequestInfoHandler currentRequestInfo;
 
         internal WebServer(string domain, ushort port)
         {
@@ -27,6 +30,23 @@ namespace BMVE.Core.Utils.Http
             _context = _listener.GetContext();
             request = _context.Request;
             response = _context.Response;
+
+            using (var memoryStream = new MemoryStream())
+            {
+                currentRequestInfo = new RequestInfoHandler();
+                request.InputStream.CopyTo(memoryStream);
+                memoryStream.Seek(0, System.IO.SeekOrigin.Begin);
+                var length = memoryStream.Length;
+                var buffer = new byte[length];
+                memoryStream.Read(buffer, 0, (int)length);
+
+
+                //using (var istream = new StreamReader(memoryStream))
+                //{
+                //    istream.BaseStream.Position = 0;
+                //    currentRequestInfo.RequestBodyContent = istream.ReadToEnd();
+                //}
+            }
         }
 
         internal void SendResult(byte[] result)

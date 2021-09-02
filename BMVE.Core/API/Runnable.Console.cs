@@ -14,7 +14,7 @@ namespace BMVE.Core
         /// <para>При печати текста используются настройки шрифта и цвет вывода текста</para>
         /// </summary>
         /// <param name="text">Текст, который должен быть выведен в консоль</param>
-        protected void Console_WriteLine(params object[] text) => ConsoleProxy.Console_WriteLine(text);
+        protected void Console_WriteLine(string text) => ConsoleProxy.Console_WriteLine(text);
 
         /// <summary>
         /// Читает строку, которую пользователь вводит с клавиатуры
