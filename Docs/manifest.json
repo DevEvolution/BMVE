@@ -1,0 +1,126 @@
+{
+  "homepages": [],
+  "source_base_path": "C:/Users/devev/source/repos/BMVE/BMVE.Core",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "API/BMVE.Core.Runnable.yml",
+      "output": {
+        ".html": {
+          "relative_path": "API/BMVE.Core.Runnable.html",
+          "hash": "v8dmrA14LmPUHpTqpdEYPI4y8CbxXcljj0eAcRhg0HQ="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "API/BMVE.Core.View.CodeView.yml",
+      "output": {
+        ".html": {
+          "relative_path": "API/BMVE.Core.View.CodeView.html",
+          "hash": "+mM5O5bEBtqimmIQ+BJgxIdkZy06UPQmZlUs87RQxgU="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "API/BMVE.Core.View.yml",
+      "output": {
+        ".html": {
+          "relative_path": "API/BMVE.Core.View.html",
+          "hash": "p+4d2cYwXyffXzDHVOKbzTOJXZh4m+xv9VmAy2ttDEo="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "API/BMVE.Core.yml",
+      "output": {
+        ".html": {
+          "relative_path": "API/BMVE.Core.html",
+          "hash": "2X4Gj2fT+wzN9skbveGIL+OTCameKEdvzNQ6cu3t8MA="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "API/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "API/toc.html",
+          "hash": "KWug0bFJb/8uYMeHlZY28yIyspJZ45+UUJZIoLJ1qqw="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "README.md",
+      "output": {
+        ".html": {
+          "relative_path": "README.html",
+          "hash": "vtjdhtxhgOPT3qDAZOiBO7Dmk45zo85SdCkFk1vBzD0="
+        }
+      },
+      "is_incremental": true,
+      "version": ""
+    }
+  ],
+  "incremental_info": [
+    {
+      "status": {
+        "can_incremental": true,
+        "incrementalPhase": "build",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {
+        "ConceptualDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 1,
+          "skipped_file_count": 1
+        },
+        "ManagedReferenceDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 4,
+          "skipped_file_count": 3
+        },
+        "TocDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor TocDocumentProcessor cannot support incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build",
+          "total_file_count": 0,
+          "skipped_file_count": 0
+        }
+      }
+    },
+    {
+      "status": {
+        "can_incremental": true,
+        "details": "Can support incremental post processing.",
+        "incrementalPhase": "postProcessing",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {}
+    }
+  ],
+  "version_info": {},
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}
