@@ -1,0 +1,11 @@
+### YamlMime:TableOfContent
+- uid: BMVE.Core
+  name: BMVE.Core
+  items:
+  - uid: BMVE.Core.Runnable
+    name: Runnable
+- uid: BMVE.Core.View
+  name: BMVE.Core.View
+  items:
+  - uid: BMVE.Core.View.CodeView
+    name: CodeView

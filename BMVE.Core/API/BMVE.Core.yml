@@ -1,0 +1,28 @@
+### YamlMime:ManagedReference
+items:
+- uid: BMVE.Core
+  commentId: N:BMVE.Core
+  id: BMVE.Core
+  children:
+  - BMVE.Core.Runnable
+  langs:
+  - csharp
+  - vb
+  name: BMVE.Core
+  nameWithType: BMVE.Core
+  fullName: BMVE.Core
+  type: Namespace
+  assemblies:
+  - BMVE.Core
+references:
+- uid: BMVE.Core.Runnable
+  commentId: T:BMVE.Core.Runnable
+  parent: BMVE.Core
+  name: Runnable
+  nameWithType: Runnable
+  fullName: BMVE.Core.Runnable
+- uid: BMVE.Core
+  commentId: N:BMVE.Core
+  name: BMVE.Core
+  nameWithType: BMVE.Core
+  fullName: BMVE.Core

@@ -1,0 +1,22 @@
+### YamlMime:ManagedReference
+items:
+- uid: BMVE.Core.View
+  commentId: N:BMVE.Core.View
+  id: BMVE.Core.View
+  children:
+  - BMVE.Core.View.CodeView
+  langs:
+  - csharp
+  - vb
+  name: BMVE.Core.View
+  nameWithType: BMVE.Core.View
+  fullName: BMVE.Core.View
+  type: Namespace
+  assemblies:
+  - BMVE.Core
+references:
+- uid: BMVE.Core.View.CodeView
+  commentId: T:BMVE.Core.View.CodeView
+  name: CodeView
+  nameWithType: CodeView
+  fullName: BMVE.Core.View.CodeView

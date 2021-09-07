@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BMVE.Core.Enums
 {
-    public enum DatabaseKind
+    internal enum DatabaseKind
     {
         MsSqlServer,
         MySql,

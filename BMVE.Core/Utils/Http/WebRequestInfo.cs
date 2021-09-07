@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BMVE.Core.Utils.Http
 {
-    public class WebRequestInfo
+    internal class WebRequestInfo
     {
         public Guid MetaId { get; set; }
 
